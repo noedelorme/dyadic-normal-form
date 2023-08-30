@@ -1,31 +1,85 @@
 from numpy import linalg
 
+EPS = 0.0001
 
-def meq(m1,m2): 
-    return abs(linalg.norm(m1-m2))<0.0001
-
-omega = exp(i*pi/4)
-omegadagger = exp(-i*pi/4)
 I = matrix([[1,0],[0,1]])
 H = 1/sqrt(2)*matrix([[1,1],[1,-1]])
-S = matrix([[1,0],[0,i]])
-Sdagger= matrix([[1,0],[0,-i]])
+X = matrix([[0,1],[1,0]])
+Y = matrix([[0,-i],[i,0]])
+U = matrix([[1,0],[0,exp(i*pi/8)]])
 T = matrix([[1,0],[0,exp(i*pi/4)]])
-Tdagger = matrix([[1,0],[0,exp(-i*pi/4)]])
-U = matrix([[1,0],[0,exp(i*pi/8)]])
-Udagger = matrix([[1,0],[0,exp(-i*pi/8)]])
+S = matrix([[1,0],[0,i]])
+Z = matrix([[1,0],[0,-1]])
+ZS= matrix([[1,0],[0,-i]])
+ZST = matrix([[1,0],[0,exp(-i*pi/4)]])
+ZSTU = matrix([[1,0],[0,exp(-i*pi/8)]])
 
-I = matrix([[1,0],[0,1]])
-H = 1/sqrt(2)*matrix([[1,1],[1,-1]])
-U = matrix([[1,0],[0,exp(i*pi/8)]])
-U0 = I
-U1 = U0*U
-U2 = U1*U
-U3 = U2*U
-U4 = U3*U
-U5 = U4*U
-U6 = U5*U
-U7 = U6*U
+Clifford = [I,Z,S,ZS,X,Y,X*S,X*ZS,H*S*H,H*ZS*H,H*S*H*Z,H*ZS*H*Z,H*S*H*S,H*ZS*H*ZS,H*ZS*H*S,H*S*H*ZS,H,H*X,H*Z,H*Y,H*S,H*ZS,H*X*S,H*X*ZS]
+
+def isIdentity(m):
+    if abs(m[0][0])>EPS: return abs(linalg.norm(matrix([[1,0],[0,1]])-(1/m[0][0]*m).n()))<EPS
+    else: return False
+
+def isEqual(m1,m2):
+    if abs(m1[0][0])>EPS: m1 = (1/m1[0][0]*m1).n()
+    else: m1 = (1/m1[1][0]*m1).n()
+    if abs(m2[0][0])>EPS: m2 = (1/m2[0][0]*m2).n()
+    else: m2 = (1/m2[1][0]*m2).n()
+    return abs(linalg.norm(m1-m2))<EPS
+
+def computeNF(word):
+    U = matrix([[1,0],[0,exp(i*word[0]*pi/8)]])
+    for k in range(1,len(word)):
+        U *= H*matrix([[1,0],[0,exp(i*word[k]*pi/8)]])
+    return U.n()
+
+def firstBiggerThan7(word):
+    k = 0
+    while k<len(word):
+        if word[k]>=7: k += 1
+        else: return k
+    return k
+
+def checkAllNFs(lenght):
+    emptyword = [int(i!=0) for i in range(lenght)]
+    word = emptyword.copy()
+    while all(v<8 for v in word):
+        print(word)
+        if isIdentity(computeNF(word)):
+            print("---- Identity normal form found! ----")
+            print(word)
+            return True
+        k = firstBiggerThan7(word)
+        if k>=lenght: return True
+        word[k] += 1
+        if k!=0 and word[k]==4: word[k] = 5
+        for i in range(k): word[i] = emptyword[i]
+
+
+# lenght = 2
+# checkAllNFs(lenght)
+
+
+
+
+
+
+
+
+
+
+# I = matrix([[1,0],[0,1]])
+# H = 1/sqrt(2)*matrix([[1,1],[1,-1]])
+# U = matrix([[1,0],[0,exp(i*pi/8)]])
+# U0 = I
+# U1 = U0*U
+# U2 = U1*U
+# U3 = U2*U
+# U4 = U3*U
+# U5 = U4*U
+# U6 = U5*U
+# U7 = U6*U
+
 
 # print(matrix([[1,0],[0,exp(i*5*pi/8)]]))
 
@@ -50,41 +104,3 @@ U7 = U6*U
 #         print("found")
 #     else:
 #         print(i,"not found yet")
-
-
-def computeNF(word):
-    U = I
-    for k in word:
-        U *= H*matrix([[1,0],[0,exp(i*k*pi/8)]])
-    return U.n()
-
-def firstBiggerThan7(word):
-    k = 0
-    while k<len(word):
-        if word[k]>=7: k += 1
-        else: return k
-    return k
-
-def checkAllNFs(lenght):
-    emptyword = [1 for i in range(lenght)]
-    emptyword[0] = 0
-    emptyword[-1] = 0
-    word = emptyword.copy()
-    while not all(v==7 for v in word):
-        while word[0] <= 7:
-            print(word)
-            if meq(I,computeNF(word)):
-                print("---- Identity normal form found! ----")
-                print(word)
-                return True
-            else:
-                word[0] += 1
-        k = firstBiggerThan7(word)
-        if k>=lenght: return True
-        word[k] += 1
-        if  word[k]==2: word[k] = 3
-        for i in range(k): word[i] = emptyword[i]
-
-
-lenght = 5
-checkAllNFs(lenght)
