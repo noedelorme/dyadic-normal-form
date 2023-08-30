@@ -15,6 +15,9 @@ ZST = matrix([[1,0],[0,exp(-i*pi/4)]])
 ZSTU = matrix([[1,0],[0,exp(-i*pi/8)]])
 
 Clifford = [I,Z,S,ZS,X,Y,X*S,X*ZS,H*S*H,H*ZS*H,H*S*H*Z,H*ZS*H*Z,H*S*H*S,H*ZS*H*ZS,H*ZS*H*S,H*S*H*ZS,H,H*X,H*Z,H*Y,H*S,H*ZS,H*X*S,H*X*ZS]
+approxClifford = []
+for C in Clifford:
+    approxClifford.append(C.n())
 
 def isIdentity(m):
     if abs(m[0][0])>EPS: return abs(linalg.norm(matrix([[1,0],[0,1]])-(1/m[0][0]*m).n()))<EPS
@@ -45,10 +48,12 @@ def checkAllNFs(lenght):
     word = emptyword.copy()
     while all(v<8 for v in word):
         print(word)
-        if isIdentity(computeNF(word)):
-            print("---- Identity normal form found! ----")
-            print(word)
-            return True
+        NF = computeNF(word)
+        for C in approxClifford:
+            if isIdentity(NF*C):
+                print("---- Identity normal form found! ----")
+                print(word)
+                return True
         k = firstBiggerThan7(word)
         if k>=lenght: return True
         word[k] += 1
@@ -56,8 +61,8 @@ def checkAllNFs(lenght):
         for i in range(k): word[i] = emptyword[i]
 
 
-# lenght = 2
-# checkAllNFs(lenght)
+lenght = 7
+checkAllNFs(lenght)
 
 
 
